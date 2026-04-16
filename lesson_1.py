@@ -1,0 +1,119 @@
+import os
+from dotenv import load_dotenv
+from autogen import ConversableAgent
+import pprint
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+llm_config={
+    "model": "gpt-3.5-turbo",
+    "api_key":OPENAI_API_KEY
+}
+
+# ========================================
+# PARTE 1: Agente Simple
+# ========================================
+
+print("=" * 50)
+print("PARTE 1: Agente Simple")
+print("=" * 50)
+
+agent = ConversableAgent(
+    name="chatbot",
+    llm_config=llm_config,
+    human_input_mode="NEVER",
+)
+
+reply = agent.generate_reply(
+    messages=[{"content": "Tell me a joke.", "role": "user"}]
+)
+print("\n✅ Primer Chiste:")
+print(reply)
+
+
+reply = agent.generate_reply(
+    messages=[{"content": "Repeat the joke.", "role": "user"}]
+)
+print("\n✅ Chiste Repetido:")
+print(reply)
+
+# ========================================
+# PARTE 2: Conversación Multi-Agente
+# ========================================
+print("\n" + "=" * 50)
+print("PARTE 2: Conversación Multi-Agente (Cathy & Joe)")
+print("=" * 50)
+
+Santi = ConversableAgent(
+    name="Santi",
+    system_message="Your name is Santi"
+    " and you are a stand-up comedian.",
+    llm_config=llm_config,
+    human_input_mode="NEVER",
+)
+
+joe = ConversableAgent(
+    name="joe",
+    system_message="Your name is Joe and you are a stand-up comedian. "
+    "Start the next joke from the punchline of the previous joke.",
+    llm_config=llm_config,
+    human_input_mode="NEVER",
+)
+
+chat_result = joe.initiate_chat(
+    recipient=Santi,
+    message="I'm Joe. Santi, let's keep the jokes rolling.",
+    max_turns=2,
+)
+
+print("\n✅ Historial de Chat:")
+pprint.pprint(chat_result.chat_history)
+
+print("\n✅ Resumen:")
+print(chat_result.summary)
+
+print("\n✅ Costo Total del Chat:")
+pprint.pprint(chat_result.cost)
+
+
+# ========================================
+# PARTE 3: Chat con Terminación
+# ========================================
+print("\n" + "=" * 50)
+print("PARTE 3: Chat con Terminación")
+print("=" * 50)
+
+Santi = ConversableAgent(
+    name="Santi",
+    system_message="Your name is Santi and you are a stand-up comedian. "
+    "When you're ready to end the conversation, say 'I gotta go'.",
+    llm_config=llm_config,
+    human_input_mode="NEVER",
+    is_termination_msg=lambda msg: "I gotta go" in msg["content"],
+)
+
+joe = ConversableAgent(
+    name="joe",
+    system_message="Your name is Joe and you are a stand-up comedian. "
+    "When you're ready to end the conversation, say 'I gotta go'.",
+    llm_config=llm_config,
+    human_input_mode="NEVER",
+    is_termination_msg=lambda msg: "I gotta go" in msg["content"],
+)
+
+chat_result = joe.initiate_chat(
+    recipient=Santi,
+    message="I'm Joe. Santi, let's keep the jokes rolling."
+)
+
+print("\n✅ Historial de Chat:")
+pprint.pprint(chat_result.chat_history[-3:])
+
+print("\n" + "=" * 50)
+print("✅ ¡LECCIÓN 1 COMPLETADA!")
+print("=" * 50)
+
+
+
+
